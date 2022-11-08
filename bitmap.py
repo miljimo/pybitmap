@@ -81,6 +81,7 @@ class BMPFileHeader(object):
 class Bitmap(object):
     def __init__(self, header: BMPFileHeader):
         self.header = header
+        self.pixel_array = PixelArray()
         pass
 
 

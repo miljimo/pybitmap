@@ -8,6 +8,16 @@ from bitmap import Bitmap, BitmapInfoHeader, BitmapType, BMPFileHeader
 class BinaryStream(object):
     def __init__(self, buffer: io.BytesIO):
         self._buffer = buffer
+        self._size = self._buffer.seek(0, io.SEEK_END)
+        self._buffer.seek(0, io.SEEK_SET)
+
+    @property
+    def size(self) -> int:
+        return self._size
+
+    def read_string(self, length: int) -> str:
+        bytes_array = self._buffer.read(length)
+        return bytes_array.decode(encoding="utf-8")
 
     def readint_32(self) -> int:
         """
@@ -37,10 +47,8 @@ class BitmapReader(object):
             raise FileExistsError(filename)
         self._filename = filename
 
-    def read_magic_character(self, stream: io.BytesIO) -> str:
-        return (
-            stream.read(self._MAGIC_CHARACTER_LENGTH).decode(encoding="utf-8").upper()
-        )
+    def read_magic_character(self, reader: BinaryStream) -> str:
+        return reader.read_string(self._MAGIC_CHARACTER_LENGTH).upper().strip()
 
     def read_bitmap_header(
         self, reader: BinaryStream, bitmap_magic_type: str
@@ -88,19 +96,22 @@ class BitmapReader(object):
         bitmap = None
 
         with open(self._filename, mode="rb") as stream:
-            size = stream.seek(0, io.SEEK_END)
-            stream.seek(0, io.SEEK_SET)
-            bitmap_type = self.read_magic_character(stream)
+            reader = BinaryStream(stream)
+            bitmap_type = self.read_magic_character(reader)
 
             if not self.is_valid_bitmap_type(bitmap_type):
-                raise ValueError(f"not a bitmap file {self._filename}")
-            reader = BinaryStream(stream)
+                raise ValueError(
+                    f"@reader unable to read bitmap file {self._filename}, unknown bitmap type"
+                )
+
             header = self.read_bitmap_header(reader, bitmap_type)
-            print(f"Compression Type= {header.dib_info.compression_type}")
-            print(f"Bits per Pixel = {header.dib_info.bits_per_pixels}")
-            print(f"Image Size = {header.dib_info.imgsize}")
-            # read the pixel_array from the bitmap stream
             stream.seek(header.start_address, io.SEEK_SET)
+            row_size = (
+                (header.dib_info.bits_per_pixels * header.dib_info.width) / 32
+            ) * 4
+            pixel_array_size = row_size * header.dib_info.height
+            print(f"Row Size  = {row_size}")
+            print(f"Pixel Array Size  = {pixel_array_size}")
 
             bitmap = Bitmap(header=header)
 
