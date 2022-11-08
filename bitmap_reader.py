@@ -1,8 +1,7 @@
 import io
 import os
-from enum import IntEnum
-
-from bitmap import Bitmap, BitmapInfoHeader, BitmapType, BMPFileHeader
+from header import BitmapInfoHeader, BitmapType, BMPFileHeader
+from bitmap import Bitmap, Pixel
 
 
 class BinaryStream(object):
@@ -12,11 +11,21 @@ class BinaryStream(object):
         self._buffer.seek(0, io.SEEK_SET)
 
     @property
+    def position(self):
+        return self._buffer.tell()
+
+    def seek(self, npos: int) -> int:
+        return self._buffer.seek(npos, io.SEEK_SET)
+
+    @property
     def size(self) -> int:
         return self._size
 
+    def read_bytes(self, nbyte: int = 1) -> bytearray:
+        return self._buffer.read(nbyte)
+
     def read_string(self, length: int) -> str:
-        bytes_array = self._buffer.read(length)
+        bytes_array = self.read_bytes(length)
         return bytes_array.decode(encoding="utf-8")
 
     def readint_32(self) -> int:
@@ -25,7 +34,7 @@ class BinaryStream(object):
         :param stream:
         :return:
         """
-        values = self._buffer.read(4)
+        values = self.read_bytes(4)
         return (
             ((0xFFFFFFFF & values[3]) << 24)
             | ((0xFFFFFFFF & values[2]) << 16)
@@ -34,9 +43,15 @@ class BinaryStream(object):
         )
 
     def readint_16(self) -> int:
-
-        values = self._buffer.read(2)
+        values = self.read_bytes(2)
         return ((0xFFFF & values[1]) << 8) | (0xFFFF & values[0])
+
+    def readint_8(self) -> int:
+        return ord(self.read_bytes(1))
+
+    def eof(self) -> bool:
+
+        return self.position >= (self.size - 1)
 
 
 class BitmapReader(object):
@@ -46,41 +61,56 @@ class BitmapReader(object):
         if not os.path.exists(filename):
             raise FileExistsError(filename)
         self._filename = filename
+        with open(self._filename, mode="rb") as stream:
+            buffer = io.BytesIO(stream.read())
+            self._reader = BinaryStream(buffer)
 
-    def read_magic_character(self, reader: BinaryStream) -> str:
-        return reader.read_string(self._MAGIC_CHARACTER_LENGTH).upper().strip()
+    def read_magic_character(self) -> str:
+        return self._reader.read_string(self._MAGIC_CHARACTER_LENGTH).upper().strip()
 
-    def read_bitmap_header(
-        self, reader: BinaryStream, bitmap_magic_type: str
-    ) -> BMPFileHeader:
+    def read_header(self) -> BMPFileHeader:
+        bitmap_magic_type = self.read_magic_character()
+        if not self.is_valid_type(bitmap_magic_type):
+            raise ValueError(
+                f"@reader unable to read bitmap file {self._filename}, unknown bitmap type"
+            )
         header = BMPFileHeader(bitmap_magic_type)
-        header.file_size = reader.readint_32()
-        header.reserved1 = reader.readint_16()
-        header.reserved2 = reader.readint_16()
-        header.start_address = reader.readint_32()
+        header.file_size = self._reader.readint_32()
+        header.reserved1 = self._reader.readint_16()
+        header.reserved2 = self._reader.readint_16()
+        header.start_address = self._reader.readint_32()
 
-        if (header.magic == BitmapType.BM.name) or header.magic == BitmapType.BA.name:
+        if (header.type == BitmapType.BM.name) or header.type == BitmapType.BA.name:
             # reading DIB header (bitmap information header) for  Windows BITMAPINFOHEADER
             header.dib_info = BitmapInfoHeader()
-            header.dib_info.header_size = reader.readint_32()
-            header.dib_info.width = reader.readint_32()
-            header.dib_info.height = reader.readint_32()
-            header.dib_info.color_planes = reader.readint_16()
-            header.dib_info.bits_per_pixels = reader.readint_16()
-            header.dib_info.compression_type = reader.readint_32()
-            header.dib_info.imgsize = reader.readint_32()
-            header.dib_info.horizontal_resolution = reader.readint_32()
-            header.dib_info.vertical_resolution = reader.readint_32()
-            header.dib_info.number_of_color_palette = reader.readint_32()
-            header.dib_info.number_of_important_colors = reader.readint_32()
+            header.dib_info.header_size = self._reader.readint_32()
+            header.dib_info.width = self._reader.readint_32()
+            header.dib_info.height = self._reader.readint_32()
+            header.dib_info.color_planes = self._reader.readint_16()
+            header.dib_info.bits_per_pixels = self._reader.readint_16()
+            header.dib_info.compression_type = self._reader.readint_32()
+            header.dib_info.imgsize = self._reader.readint_32()
+            header.dib_info.horizontal_resolution = self._reader.readint_32()
+            header.dib_info.vertical_resolution = self._reader.readint_32()
+            header.dib_info.color_used = self._reader.readint_32()
+            header.dib_info.colors_important = self._reader.readint_32()
 
-            if header.magic == BitmapType.BA.name:
-                # Let read the additional BA information
+            if header.type == BitmapType.BA.name:
+                # Let read the additional BA information for OS/2 OS22XBIMAPHEADER2
+                hvunits = self._reader.readint_16()
+                padding = self._reader.readint_16()
+                direction = self._reader.readint_16()  # no supported in windows.
+                halftoning_algo = self._reader.readint_16()
+                param1 = self._reader.readint_32()
+                param2 = self._reader.readint_32()
+                color_encoding_type = self._reader.readint_32()  # 0 means RGB
+                app_identifier = self._reader.read_bytes(4)
+
                 pass
 
         return header
 
-    def is_valid_bitmap_type(self, ntype: str) -> bool:
+    def is_valid_type(self, ntype: str) -> bool:
         ntype = ntype.upper().strip()
         if (ntype == BitmapType.BM.name) | (ntype == BitmapType.BA.name):
             # Current support bitmap types
@@ -93,26 +123,24 @@ class BitmapReader(object):
          a Bitmap object
         :return:
         """
-        bitmap = None
 
-        with open(self._filename, mode="rb") as stream:
-            reader = BinaryStream(stream)
-            bitmap_type = self.read_magic_character(reader)
+        header = self.read_header()
+        # The Color Palette , is the colours ranges use in the bitmap image.
 
-            if not self.is_valid_bitmap_type(bitmap_type):
-                raise ValueError(
-                    f"@reader unable to read bitmap file {self._filename}, unknown bitmap type"
-                )
-
-            header = self.read_bitmap_header(reader, bitmap_type)
-            stream.seek(header.start_address, io.SEEK_SET)
-            row_size = (
-                (header.dib_info.bits_per_pixels * header.dib_info.width) / 32
-            ) * 4
-            pixel_array_size = row_size * header.dib_info.height
-            print(f"Row Size  = {row_size}")
-            print(f"Pixel Array Size  = {pixel_array_size}")
-
-            bitmap = Bitmap(header=header)
-
+        self._reader.seek(header.start_address)
+        bitmap = Bitmap(header=header)
+        with open("../bin/data.txt", mode="w+") as file:
+            while not self._reader.eof():
+                if header.dib_info.bits_per_pixels == 24:
+                    """
+                    The format for 24bit BMP Image Colour orders.
+                    """
+                    blue = self._reader.readint_8()
+                    green = self._reader.readint_8()
+                    red = self._reader.readint_8()
+                    pixel = Pixel(red=red, blue=blue, green=green)
+                    bitmap.pixels.append(pixel)
+                    file.write(str(pixel))
+                    file.write("\n")
+            file.write("Total = {0}".format(bitmap.pixels.length))
         return bitmap
