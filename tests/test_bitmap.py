@@ -1,10 +1,13 @@
 import io
 import os
-import constants
-import pytest
 from pathlib import Path
 
-from bitmap_reader import BinaryStream, BitmapReader
+import pytest
+
+import constants
+from binary_reader import (BinaryStreamReader, create_from_bytes,
+                           create_from_file)
+from bitmap_reader import BitmapReader
 
 
 @pytest.fixture(scope="session")
@@ -15,9 +18,8 @@ def filename():
 
 
 def test_read_int32_from_stream():
-    buffer = io.BytesIO(b"\x32\x00\x00\x00")
     expected = 50
-    reader = BinaryStream(buffer)
+    reader = create_from_bytes(b"\x32\x00\x00\x00")
     actual = reader.readint_32()
     assert actual == expected
 
