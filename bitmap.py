@@ -13,6 +13,7 @@ class Bitmap(object):
     1) Support for Window Bitmap implemented.
     2)
     """
+
     def __init__(self, header: BMPWindowInfoHeader, color_palette: BMPColorPalette):
         self._header = header
         self._color_palette = color_palette
