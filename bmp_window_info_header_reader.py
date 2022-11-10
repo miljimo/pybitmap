@@ -1,5 +1,5 @@
 from bmp_file_header_reader import BMPFileHeaderReader
-from bmp_window_info_header import BMPWindowInfoHeader
+from bmp_window_info_header import BMPCompressionType, BMPWindowInfoHeader
 
 
 class BMPWindowInfoHeaderReader(BMPFileHeaderReader):
@@ -23,13 +23,25 @@ class BMPWindowInfoHeaderReader(BMPFileHeaderReader):
         header.width = self.stream.readint_32()
         header.height = self.stream.readint_32()
         header.color_planes = self.stream.readint_16()
+        # The color depth , this should be
         header.bits_per_pixels = self.stream.readint_16()
         header.compression_type = self.stream.readint_32()
-        header.imgsize = self.stream.readint_32()
+        header.image_size = self.stream.readint_32()
         header.horizontal_resolution = self.stream.readint_32()
         header.vertical_resolution = self.stream.readint_32()
         header.color_used = self.stream.readint_32()
         header.colors_important = self.stream.readint_32()
 
-        # This header comes with different types base on the bits_per_pixels,compression_type
+        """
+        # Still trying to understand this part.
+        The BITMAPINFOHEADER structure may be followed by an array of palette entries or color masks. 
+        The rules depend on the value of biCompression.
+        """
+        if header.compression_type == BMPCompressionType.BI_BITFIELDS:
+            """
+            The bitmap uses three DWORD color masks (red, green, and blue, respectively),
+            which specify the byte layout of the pixels.
+            The 1 bits in each mask indicate the bits for that color within the pixel.
+            """
+            pass
         return header

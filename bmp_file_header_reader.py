@@ -1,6 +1,6 @@
 import io
 
-from binary_reader import ReaderBase, BinaryStream
+from binary_reader import BinaryStream, ReaderBase
 from bmp_file_header import BMPFileHeader
 
 

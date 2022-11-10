@@ -1,10 +1,10 @@
 import io
 import os
-from binary_reader import ReaderBase, BinaryStreamBase, BinaryStream
-from bmp_file_header import BMPInfoHeader, BMPFileType, BMPFileHeader
+
+from binary_reader import BinaryStream, BinaryStreamBase, ReaderBase
 
 
-class BMPInfoHeaderReader(ReaderBase):
+class BMPColorPaletteReader(ReaderBase):
     """
     Namespace for the bitmap image file header reader.
     The bitmap file have multi-file headers base on versions.
@@ -27,7 +27,7 @@ class BMPInfoHeaderReader(ReaderBase):
             header.color_planes = self._reader.readint_16()
             header.bits_per_pixels = self._reader.readint_16()
             header.compression_type = self._reader.readint_32()
-            header.imgsize = self._reader.readint_32()
+            header.image_size = self._reader.readint_32()
             header.horizontal_resolution = self._reader.readint_32()
             header.vertical_resolution = self._reader.readint_32()
             header.color_used = self._reader.readint_32()

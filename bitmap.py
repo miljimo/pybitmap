@@ -2,13 +2,8 @@
  ~Descriptions
   Write and read a bitmap (Device Independent Bitmap(DIB) file format
 """
+from collections import Collection
 from bmp_file_header import BMPFileHeader
-
-
-class ColorPalette(object):
-    """ """
-
-    pass
 
 
 class Pixel(object):
@@ -25,30 +20,35 @@ class Pixel(object):
         )
 
 
-class PixelArray(object):
-    def __init__(self):
+class BMPColorPalette(object):
+    """
+    The BITMAPINFOHEADER structure may be followed by an array of palette entries or color masks.
+    The rules depend on the value of biCompression.
+    """
+
+    def __init__(self, compression: int):
+        self.__compression = compression
         self._pixels = list()
 
-    def append(self, pixel: Pixel):
-        self._pixels.append(pixel)
+    def add_pixel(self, red: int, green: int, blue: int) -> None:
+        self._pixels.append(Pixel(red=red, green=green, blue=blue))
 
     @property
-    def length(self):
+    def length(self) -> int:
         return len(self._pixels)
 
 
 class Bitmap(object):
     """
     The data structure that hold the bitmap file format.
-
+    Supported Formats
+    1) Support for Window Bitmap implemented.
+    2)
     """
 
-    def __init__(self, header: BMPFileHeader):
+    def __init__(self, header: BMPFileHeader, color_palette: BMPColorPalette):
         self.bmp_header = header
-        self.pixels = PixelArray()
-
-    def pixels(self) -> PixelArray:
-        pass
+        self.color_palette = color_palette
 
 
 if __name__ == "__main__":

@@ -1,7 +1,9 @@
+import io
 import os
+
+from bmp_file_header import BMPFileType
 from bmp_file_header_reader import BMPFileHeaderReader
 from bmp_window_info_header_reader import BMPWindowInfoHeaderReader
-from bmp_file_header import BMPFileType
 
 
 def test_bitmap_header_reader_from_file_success_loaded():
@@ -26,7 +28,21 @@ def test_bitmap_header_reader_from_file_success_loaded():
             assert header.reserved1 == 0
 
 
+def test_bitmap_window_information_header_read_the_actual_pixel_data_size():
+    filename = "./fixtures/images/wisdom.bmp"
+    # ACT
+    with open(filename, mode="rb") as fs:
+        buffer = fs.read()
+        reader = BMPWindowInfoHeaderReader(buffer=buffer)
+        header = reader.read()
+        fs.seek(header.start_address, io.SEEK_SET)
+        data = fs.read()
+        expected_image_data_size = len(data)
+        assert expected_image_data_size == header.image_size
+
+
 def test_window_bitmap_info_header_success_loaded():
+    # Arrange
     filename = "./fixtures/images/wisdom.bmp"
     expected_width = 359
     expected_height = 550
@@ -37,10 +53,14 @@ def test_window_bitmap_info_header_success_loaded():
     expected_vertical_resolution = 7087
     expected_horizontal_resolution = 7087
     expected_image_size = 594000
+
+    # ACT
     with open(filename, mode="rb") as fs:
         buffer = fs.read()
         reader = BMPWindowInfoHeaderReader(buffer=buffer)
         header = reader.read()
+
+        # ASSERT
         assert header.file_size == len(buffer)
         assert header.start_address == expected_start_address
         assert header.type == BMPFileType.BM.name
@@ -56,4 +76,4 @@ def test_window_bitmap_info_header_success_loaded():
         assert header.width == expected_width
         assert header.vertical_resolution == expected_vertical_resolution
         assert header.horizontal_resolution == expected_horizontal_resolution
-        assert header.imgsize == expected_image_size
+        assert header.image_size == expected_image_size

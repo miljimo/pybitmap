@@ -1,11 +1,11 @@
 from enum import IntEnum
-from bmp_file_header import BMPFileHeader
 
+from bmp_file_header import BMPFileHeader
 
 NO_COMPRESSION_NEEDED = 0
 
 
-class BitmapCompressionType(IntEnum):
+class BMPCompressionType(IntEnum):
     """
     Bitmap compression types
     """
@@ -31,6 +31,20 @@ class HalftoningAlgorithmType(IntEnum):
     SUPER_CIRCLE = 3
 
 
+class ColorDepth:
+    """
+    The colour depths of the pixel bitmap images
+    RGB = 24 , meaning 8bits per each colour.
+    """
+
+    BITS_32 = 32
+    BITS_24 = 24
+    BITS_16 = 16
+    BITS_8 = 8
+    BITS_4 = 4
+    BITS_1 = 1
+
+
 class BMPWindowInfoHeader(BMPFileHeader):
     """
     A data structure that will hold the window bitmap image file information
@@ -46,11 +60,12 @@ class BMPWindowInfoHeader(BMPFileHeader):
         self.color_planes = 0
         self.bits_per_pixels = 0
         self.compression_type = 0
-        self.imgsize = 0
+        self.image_size = 0
         self.horizontal_resolution = 0
         self.vertical_resolution = 0
         self._color_used = 0
         self.colors_important = 0
+        self.is_extended = False
 
     @property
     def color_used(self):

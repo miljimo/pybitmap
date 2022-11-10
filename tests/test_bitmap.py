@@ -6,7 +6,7 @@ import pytest
 
 import constants
 from binary_reader import BinaryStream, create_from_bytes, create_from_file
-from bitmap_reader import BitmapReader
+from bmp_window_color_palette_reader import BitmapReader
 
 
 @pytest.fixture(scope="session")
