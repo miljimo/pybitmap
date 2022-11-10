@@ -1,13 +1,54 @@
+import abc
 import io
 import os
+import typing
+from abc import ABCMeta
 
 
-class IOBinaryReader(object):
-    pass
+class ReaderBase(metaclass=ABCMeta):
+    @abc.abstractmethod
+    def read(self) -> typing.Any:
+        pass
 
 
-class BinaryStreamReader(IOBinaryReader):
+class BinaryStreamBase(ReaderBase):
+    """
+    An interface to a binary stream , reading numbers, chracters and floating points
+    """
+
+    @abc.abstractmethod
+    def read_bytes(self, nbyte: int) -> bytearray:
+        pass
+
+    @abc.abstractmethod
+    def readint_32(self):
+        pass
+
+    @abc.abstractmethod
+    def readint_16(self):
+        pass
+
+    @abc.abstractmethod
+    def readint_8(self):
+        pass
+
+    @abc.abstractmethod
+    def eof(cls):
+        pass
+
+    @abc.abstractmethod
+    def size(self) -> int:
+        pass
+
+    @property
+    @abc.abstractmethod
+    def position(self) -> int:
+        pass
+
+
+class BinaryStream(ReaderBase):
     def __init__(self, buffer: io.BytesIO):
+        super().__init__()
         self._buffer = buffer
         self._size = self._buffer.seek(0, io.SEEK_END)
         self._buffer.seek(0, io.SEEK_SET)
@@ -15,6 +56,9 @@ class BinaryStreamReader(IOBinaryReader):
     @property
     def position(self):
         return self._buffer.tell()
+
+    def read(self) -> typing.Any:
+        return self._buffer.read()
 
     def seek(self, npos: int) -> int:
         return self._buffer.seek(npos, io.SEEK_SET)
@@ -52,15 +96,14 @@ class BinaryStreamReader(IOBinaryReader):
         return ord(self.read_bytes(1))
 
     def eof(self) -> bool:
-
         return self.position >= (self.size - 1)
 
 
 def create_from_bytes(buffer: bytearray):
-    return BinaryStreamReader(io.BytesIO(buffer))
+    return BinaryStream(io.BytesIO(buffer))
 
 
-def create_from_file(filename: str) -> BinaryStreamReader:
+def create_from_file(filename: str) -> BinaryStream:
     """
      create a new binary buffer reader from a filename
     :param filename:

@@ -1,9 +1,9 @@
 import io
 import os
 
-from binary_reader import create_from_file
+from binary_reader import create_from_file, BinaryStream, ReaderBase, BinaryStreamBase
+from bmp_file_header import BMPInfoHeader, BMPFileType, BMPFileHeader
 from bitmap import Bitmap, Pixel
-from header import BitmapInfoHeader, BitmapType, BMPFileHeader
 
 
 class BitmapReader(object):
@@ -18,51 +18,60 @@ class BitmapReader(object):
     def read_magic_character(self) -> str:
         return self._reader.read_string(self._MAGIC_CHARACTER_LENGTH).upper().strip()
 
+    def create_header_information_from(
+        self, reader: BinaryStreamBase, bitmap_type: str
+    ) -> BMPInfoHeader:
+        if bitmap_type == BMPFileType.BM:
+            header = BMPInfoHeader()
+            header.header_size = reader.readint_32()
+            header.width = reader.readint_32()
+            header.height = reader.readint_32()
+            header.color_planes = reader.readint_16()
+            header.bits_per_pixels = reader.readint_16()
+            header.compression_type = reader.readint_32()
+            header.imgsize = reader.readint_32()
+            header.horizontal_resolution = reader.readint_32()
+            header.vertical_resolution = reader.readint_32()
+            header.color_used = reader.readint_32()
+            header.colors_important = reader.readint_32()
+
+            if header.bits_per_pixels == 16:
+                # Let read the additional BA information for OS/2 OS22XBIMAPHEADER2
+                hvunits = reader.readint_16()
+                padding = reader.readint_16()
+                direction = reader.readint_16()  # no supported in windows.
+                halftoning_algo = reader.readint_16()
+                param1 = reader.readint_32()
+                param2 = reader.readint_32()
+                color_encoding_type = reader.readint_32()  # 0 means RGB
+                app_identifier = reader.read_bytes(4)
+
+            return header
+
     def read_header(self) -> BMPFileHeader:
         bitmap_magic_type = self.read_magic_character()
         if not self.is_valid_type(bitmap_magic_type):
             raise ValueError(
                 f"@reader unable to read bitmap file {self._filename}, unknown bitmap type"
             )
+        # The header type depends on the bitmap_magic_type
         header = BMPFileHeader(bitmap_magic_type)
         header.file_size = self._reader.readint_32()
         header.reserved1 = self._reader.readint_16()
         header.reserved2 = self._reader.readint_16()
         header.start_address = self._reader.readint_32()
-
-        if (header.type == BitmapType.BM.name) or header.type == BitmapType.BA.name:
-            # reading DIB header (bitmap information header) for  Windows BITMAPINFOHEADER
-            header.dib_info = BitmapInfoHeader()
-            header.dib_info.header_size = self._reader.readint_32()
-            header.dib_info.width = self._reader.readint_32()
-            header.dib_info.height = self._reader.readint_32()
-            header.dib_info.color_planes = self._reader.readint_16()
-            header.dib_info.bits_per_pixels = self._reader.readint_16()
-            header.dib_info.compression_type = self._reader.readint_32()
-            header.dib_info.imgsize = self._reader.readint_32()
-            header.dib_info.horizontal_resolution = self._reader.readint_32()
-            header.dib_info.vertical_resolution = self._reader.readint_32()
-            header.dib_info.color_used = self._reader.readint_32()
-            header.dib_info.colors_important = self._reader.readint_32()
-
-            if header.type == BitmapType.BA.name:
-                # Let read the additional BA information for OS/2 OS22XBIMAPHEADER2
-                hvunits = self._reader.readint_16()
-                padding = self._reader.readint_16()
-                direction = self._reader.readint_16()  # no supported in windows.
-                halftoning_algo = self._reader.readint_16()
-                param1 = self._reader.readint_32()
-                param2 = self._reader.readint_32()
-                color_encoding_type = self._reader.readint_32()  # 0 means RGB
-                app_identifier = self._reader.read_bytes(4)
-
-                pass
+        # Get all the header information bytes
+        header.dib_info = self.create_header_information_from(
+            BinaryStream(io.BytesIO(self._reader.read_bytes(header.start_address - 1))),
+            bitmap_magic_type,
+        )
+        self._reader.seek(header.start_address)
 
         return header
 
     def is_valid_type(self, ntype: str) -> bool:
         ntype = ntype.upper().strip()
-        if (ntype == BitmapType.BM.name) | (ntype == BitmapType.BA.name):
+        if (ntype == BMPFileType.BM.name) | (ntype == BMPFileType.BA.name):
             # Current support bitmap types
             return True
         return False

@@ -2,7 +2,7 @@
  ~Descriptions
   Write and read a bitmap (Device Independent Bitmap(DIB) file format
 """
-from header import BMPFileHeader
+from bmp_file_header import BMPFileHeader
 
 
 class ColorPalette(object):

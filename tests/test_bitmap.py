@@ -5,8 +5,7 @@ from pathlib import Path
 import pytest
 
 import constants
-from binary_reader import (BinaryStreamReader, create_from_bytes,
-                           create_from_file)
+from binary_reader import BinaryStream, create_from_bytes, create_from_file
 from bitmap_reader import BitmapReader
 
 
