@@ -19,6 +19,10 @@ class Bitmap(object):
         self._color_palette = color_palette
 
     @property
+    def type(self):
+        return self._header.type
+
+    @property
     def width(self) -> int:
         return self._header.width
 

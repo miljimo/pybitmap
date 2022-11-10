@@ -11,42 +11,7 @@ class ReaderBase(metaclass=ABCMeta):
         pass
 
 
-class BinaryStreamBase(ReaderBase):
-    """
-    An interface to a binary stream , reading numbers, chracters and floating points
-    """
-
-    @abc.abstractmethod
-    def read_bytes(self, nbyte: int) -> bytearray:
-        pass
-
-    @abc.abstractmethod
-    def readint_32(self):
-        pass
-
-    @abc.abstractmethod
-    def readint_16(self):
-        pass
-
-    @abc.abstractmethod
-    def readint_8(self):
-        pass
-
-    @abc.abstractmethod
-    def eof(cls):
-        pass
-
-    @abc.abstractmethod
-    def size(self) -> int:
-        pass
-
-    @property
-    @abc.abstractmethod
-    def position(self) -> int:
-        pass
-
-
-class BinaryStream(ReaderBase):
+class BinaryStreamReader(ReaderBase):
     def __init__(self, buffer: io.BytesIO):
         super().__init__()
         self._buffer = buffer
@@ -97,20 +62,3 @@ class BinaryStream(ReaderBase):
 
     def eof(self) -> bool:
         return self.position >= (self.size - 1)
-
-
-def create_from_bytes(buffer: bytearray):
-    return BinaryStream(io.BytesIO(buffer))
-
-
-def create_from_file(filename: str) -> BinaryStream:
-    """
-     create a new binary buffer reader from a filename
-    :param filename:
-    :return:
-    """
-    if not os.path.exists(filename):
-        raise FileNotFoundError(filename)
-
-    with open(filename, mode="rb") as stream:
-        return create_from_bytes(stream.read())

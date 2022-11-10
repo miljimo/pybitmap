@@ -1,6 +1,6 @@
 import io
 
-from binary_reader import BinaryStream, ReaderBase
+from binary_stream_reader import BinaryStreamReader, ReaderBase
 from bmp_file_header import BMPFileHeader
 
 
@@ -16,11 +16,11 @@ class BMPFileHeaderReader(ReaderBase):
     ):
         if type(buffer) != bytes:
             raise TypeError("@BMPFileHeader reader expecting a bytearray parameter")
-        self.__stream = BinaryStream(io.BytesIO(buffer))
+        self.__stream = BinaryStreamReader(io.BytesIO(buffer))
         self._header_class_type = header_class_type
 
     @property
-    def stream(self) -> BinaryStream:
+    def stream(self) -> BinaryStreamReader:
         return self.__stream
 
     def read(self) -> BMPFileHeader:

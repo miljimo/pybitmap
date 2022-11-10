@@ -1,7 +1,7 @@
 import io
 import os
 from bitmap import Bitmap
-from binary_reader import ReaderBase
+from binary_stream_reader import ReaderBase
 from bmp_window_info_header import BMPColorDepthType, BMPCompressionType
 from bmp_window_info_header_reader import BMPWindowInfoHeaderReader
 from bmp_window_color_palette_reader import BMPWindowColorPaletteReader
@@ -35,6 +35,6 @@ class BMPFileReader(ReaderBase):
             # move the cursor to the start address of the color palette
             fs.seek(header.start_address, io.SEEK_SET)
             color_palette = BMPWindowColorPaletteReader(
-                fs.read(header.image_size), height=header.height, width=header.width
+                fs.read(header.image_size), header=header
             ).read()
             return Bitmap(header=header, color_palette=color_palette)
