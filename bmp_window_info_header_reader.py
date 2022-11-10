@@ -44,4 +44,7 @@ class BMPWindowInfoHeaderReader(BMPFileHeaderReader):
             The 1 bits in each mask indicate the bits for that color within the pixel.
             """
             pass
+        if header.compression_type == BMPCompressionType.BI_ALPHABITFIELDS:
+
+            pass
         return header
