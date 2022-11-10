@@ -31,7 +31,7 @@ class HalftoningAlgorithmType(IntEnum):
     SUPER_CIRCLE = 3
 
 
-class ColorDepth:
+class BMPColorDepthType:
     """
     The colour depths of the pixel bitmap images
     RGB = 24 , meaning 8bits per each colour.

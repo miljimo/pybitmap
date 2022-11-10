@@ -29,3 +29,8 @@ class Bitmap(object):
     @property
     def color_palette(self) -> BMPColorPalette:
         return self._color_palette
+
+    def __repr__(self) -> str:
+        return "Bitmap(type={0},width={1},height={2}, pixels={3})".format(
+            self._header.type, self.width, self.height, self._color_palette.length
+        )
