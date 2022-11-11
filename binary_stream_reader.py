@@ -103,3 +103,7 @@ class BinaryStreamWriter(object):
     @property
     def position(self) -> int:
         return self.__buffer.tell()
+
+    @property
+    def get_bytes(self) -> bytes:
+        return self.__buffer.read()

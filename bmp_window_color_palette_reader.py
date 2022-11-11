@@ -1,7 +1,12 @@
 import io
 
-from binary_stream_reader import BinaryStreamReader, ReaderBase, WriterBase
-from bitmap import BMPColorPalette
+from binary_stream_reader import (
+    BinaryStreamReader,
+    ReaderBase,
+    WriterBase,
+    BinaryStreamWriter,
+)
+from bmpimage import BMPColorPalette
 from bmp_window_info_header import BMPWindowInfoHeader
 
 
@@ -38,7 +43,11 @@ class BMPWindowColorPaletteReader(ReaderBase):
 
 class BMPWindowColorPaletteWriter(WriterBase):
     def __init__(self):
-        self.__stream = io.BytesIO()
+        self.__stream = BinaryStreamWriter()
+
+    @property
+    def stream(self) -> BinaryStreamWriter:
+        return self.__stream
 
     def write(self, color_palette: BMPColorPalette) -> int:
         pass

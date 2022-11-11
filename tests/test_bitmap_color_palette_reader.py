@@ -1,4 +1,7 @@
 import io
+import os.path
+
+from constants import ROOT_DIR
 from bmp_window_info_header import BMPColorDepthType
 from bmp_color_palette import BMPColorPalette
 from bmp_window_color_palette_reader import (
@@ -9,7 +12,7 @@ from bmp_window_info_header_reader import BMPWindowInfoHeaderReader
 
 
 def test_window_bitmap_color_palette_pixels_loaded():
-    filename = "./fixtures/images/wisdom.bmp"
+    filename = os.path.join(ROOT_DIR, "tests/fixtures/images/wisdom.bmp")
     with open(filename, mode="rb") as fs:
         buffer = fs.read()
         header_reader = BMPWindowInfoHeaderReader(buffer=buffer)
