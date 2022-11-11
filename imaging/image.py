@@ -1,14 +1,6 @@
 import abc
 from imaging.size import Size
-
-
-class Pixel(metaclass=abc.ABCMeta):
-    pass
-
-
-class PixelArray(metaclass=abc.ABCMeta):
-    def at(self, row_index: int, column_index: int) -> Pixel:
-        pass
+from imaging.pixel_array import PixelArray
 
 
 class Image(metaclass=abc.ABCMeta):

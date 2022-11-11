@@ -38,12 +38,11 @@ class BMPFileReader(ReaderBase):
             if header.bits_per_pixels != BMPColorDepthType.BITS_24:
                 raise TypeError("unsupported color depth bitmap detected.")
 
-            # move the cursor to the start address of the color palette
             fs.seek(header.start_address, io.SEEK_SET)
             color_palette = BMPWindowColorPaletteReader(
                 fs.read(header.image_size), header=header
             ).read()
-            return BMPImage(header=header, color_palette=color_palette)
+            return BMPImage(header=header, pixels=color_palette.decode_pixels())
 
 
 class BMPFileWriter(WriterBase):
@@ -54,7 +53,7 @@ class BMPFileWriter(WriterBase):
         writer = BMPWindowInfoHeaderWriter()
         writer.write(bitmap._header)
         content_writer = BMPWindowColorPaletteWriter()
-        content_writer.write(bitmap._color_palette)
+        content_writer.write(bitmap.pixels)
 
         # save the content.
         with open(filename, mode="wb") as fs:

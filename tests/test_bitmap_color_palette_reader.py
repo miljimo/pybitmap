@@ -3,7 +3,7 @@ import os.path
 
 from constants import ROOT_DIR
 from bmp_window_info_header import BMPColorDepthType
-from bmp_color_palette import BMPColorPalette
+from bmp_color_palette import BMPPalette
 from bmp_window_color_palette_reader import (
     BMPWindowColorPaletteReader,
     BMPWindowColorPaletteWriter,
@@ -31,7 +31,7 @@ def test_window_write_bitmap_color_palette_pixels():
     writer = BMPWindowColorPaletteWriter()
     width = 400  # in pixel
     height = 500  # in pixel
-    color_palette = BMPColorPalette(0, 450, 450)
+    color_palette = BMPPalette(0, 450, 450)
     nbytes = writer.write(color_palette=color_palette)
     expected_nbytes_size = (width * height) * BMPColorDepthType.BITS_24
 

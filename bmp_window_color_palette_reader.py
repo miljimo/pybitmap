@@ -1,12 +1,12 @@
 import io
-
+from imaging.pixel_array import PixelArray
 from binary_stream_reader import (
     BinaryStreamReader,
     ReaderBase,
     WriterBase,
     BinaryStreamWriter,
 )
-from bmpimage import BMPColorPalette
+from bmpimage import BMPPalette
 from bmp_window_info_header import BMPWindowInfoHeader
 
 
@@ -21,24 +21,15 @@ class BMPWindowColorPaletteReader(ReaderBase):
     def stream(self) -> BinaryStreamReader:
         return self.__stream
 
-    def read(self) -> BMPColorPalette:
+    def read(self) -> BMPPalette:
         """
         :return:
         """
-        color_palette = BMPColorPalette(
-            compression=0, width=self._header.width, height=self._header.height
+        color_palette = BMPPalette(
+            width=self._header.width,
+            height=self._header.height,
+            buffer=self.stream.read(),
         )
-        # Still don't understand it yet.
-        stride = (((self._header.width * self._header.bits_per_pixels) + 31) & ~31) >> 3
-
-        print(stride)
-        for _ in range(0, self._header.image_size, 3):
-            blue = self.stream.readint_8()
-            green = self.stream.readint_8()
-            red = self.stream.readint_8()
-            color_palette.add_pixel(red, green, blue)
-
-        return color_palette
 
 
 class BMPWindowColorPaletteWriter(WriterBase):
@@ -49,5 +40,9 @@ class BMPWindowColorPaletteWriter(WriterBase):
     def stream(self) -> BinaryStreamWriter:
         return self.__stream
 
-    def write(self, color_palette: BMPColorPalette) -> int:
-        pass
+    def write(self, pixels: PixelArray) -> int:
+        for pixel in pixels:
+            # RGB -> BGR
+            self.__stream.write_int8(pixel.blue)
+            self.__stream.write_int8(pixel.green)
+            self.__stream.write_int8(pixel.red)

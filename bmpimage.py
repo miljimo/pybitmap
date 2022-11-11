@@ -4,7 +4,8 @@
 """
 from imaging.image import Image
 from imaging.size import Size
-from bmp_color_palette import BMPColorPalette
+from imaging.pixel_array import PixelArray
+from bmp_color_palette import BMPPalette
 from bmp_window_info_header import BMPWindowInfoHeader
 
 
@@ -16,10 +17,26 @@ class BMPImage(Image):
     2)
     """
 
-    def __init__(self, header: BMPWindowInfoHeader, color_palette: BMPColorPalette):
+    def __init__(
+        self, header: BMPWindowInfoHeader, pixels: PixelArray = PixelArray(Size(0, 0))
+    ):
         self._header = header
-        self._color_palette = color_palette
-        self._size = Size(self._header.width, self._header.height)
+        self.__size = Size(self._header.width, self._header.height)
+        self.__resolution = Size(
+            self._header.horizontal_resolution, self._header.vertical_resolution
+        )
+        self.__pixels = pixels
+
+    def resolution(self) -> Size:
+        return self.__resolution
+
+    @property
+    def compression_type(self) -> int:
+        return self._header.compression_type
+
+    @property
+    def bits_per_pixel(self) -> int:
+        return self._header.bits_per_pixels
 
     @property
     def type(self):
@@ -27,13 +44,13 @@ class BMPImage(Image):
 
     @property
     def size(self) -> Size:
-        return self._size
+        return self.__size
 
     @property
-    def pixels(self) -> BMPColorPalette:
-        return self._color_palette
+    def pixels(self) -> PixelArray:
+        return self.__pixels
 
     def __repr__(self) -> str:
         return "Bitmap(type={0},width={1},height={2}, pixels={3})".format(
-            self._header.type, self.width, self.height, self._color_palette.length
+            self._header.type, self.size.width, self.size.height, self.pixels.length
         )

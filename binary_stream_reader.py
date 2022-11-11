@@ -91,14 +91,15 @@ class BinaryStreamWriter(object):
         buffer.append(value & 0xFF)
         return self.__buffer.write(buffer)
 
-    def write_int16(self, value: int) -> None:
+    def write_int16(self, value: int) -> int:
         buffer = bytearray()
         buffer.append((value >> 8) & 0xFF)
         buffer.append(value & 0xFF)
         return self.__buffer.write(buffer)
 
-    def write_bytes(self, buffer: bytes) -> int:
-        return self.__buffer.write(buffer)
+    def write_int8(self, value: int) -> int:
+        value = 0xFF & value
+        return self.__buffer.write(value)
 
     @property
     def position(self) -> int:
