@@ -1,10 +1,11 @@
 import io
 import os
-from bitmap import Bitmap
+
 from binary_stream_reader import ReaderBase
+from bitmap import Bitmap
+from bmp_window_color_palette_reader import BMPWindowColorPaletteReader
 from bmp_window_info_header import BMPColorDepthType, BMPCompressionType
 from bmp_window_info_header_reader import BMPWindowInfoHeaderReader
-from bmp_window_color_palette_reader import BMPWindowColorPaletteReader
 
 BMP_FILE_HEADER_BYTE_SIZE = 12
 

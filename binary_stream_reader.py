@@ -11,6 +11,12 @@ class ReaderBase(metaclass=ABCMeta):
         pass
 
 
+class WriterBase(metaclass=ABCMeta):
+    @abc.abstractmethod
+    def write(self, data: typing.Any) -> typing.Any:
+        pass
+
+
 class BinaryStreamReader(ReaderBase):
     def __init__(self, buffer: io.BytesIO):
         super().__init__()
@@ -62,3 +68,38 @@ class BinaryStreamReader(ReaderBase):
 
     def eof(self) -> bool:
         return self.position >= (self.size - 1)
+
+
+class BinaryStreamWriter(object):
+
+    """
+    The class is used to write objects into memory.
+    """
+
+    def __init__(self):
+        self.__buffer = io.BytesIO()
+
+    def write_string(self, value: str) -> int:
+        return self.__buffer.write(value.encode(encoding="utf"))
+
+    def write_int32(self, value: int) -> None:
+        # using little intial
+        buffer = bytearray()
+        buffer.append((value >> 24) & 0xFF)
+        buffer.append((value >> 16) & 0xFF)
+        buffer.append((value >> 8) & 0xFF)
+        buffer.append(value & 0xFF)
+        return self.__buffer.write(buffer)
+
+    def write_int16(self, value: int) -> None:
+        buffer = bytearray()
+        buffer.append((value >> 8) & 0xFF)
+        buffer.append(value & 0xFF)
+        return self.__buffer.write(buffer)
+
+    def write_bytes(self, buffer: bytes) -> int:
+        return self.__buffer.write(buffer)
+
+    @property
+    def position(self) -> int:
+        return self.__buffer.tell()

@@ -2,8 +2,8 @@
  ~Descriptions
   Write and read a bitmap (Device Independent Bitmap(DIB) file format
 """
-from bmp_window_info_header import BMPWindowInfoHeader
 from bmp_color_palette import BMPColorPalette
+from bmp_window_info_header import BMPWindowInfoHeader
 
 
 class Bitmap(object):
@@ -21,6 +21,10 @@ class Bitmap(object):
     @property
     def type(self):
         return self._header.type
+
+    @property
+    def bits_size(self) -> int:
+        return self._header.bits_per_pixels
 
     @property
     def width(self) -> int:

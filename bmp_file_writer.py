@@ -1,14 +1,7 @@
 import io
+
 from bitmap import Bitmap
 from bmp_file_header import BMPFileType
-
-
-class BinaryStreamWriter(object):
-    def __init__(self):
-        self.__buffer = io.BytesIO()
-
-    def write_string(self, value: str) -> int:
-        return self.__buffer.write(value.encode(encoding="utf"))
 
 
 class BMPFileWriter(object):
@@ -19,6 +12,11 @@ class BMPFileWriter(object):
         writer = BinaryStreamWriter()
         # write the bitmap header
         writer.write_string(bitmap.type)
+        writer.write_int32(bitmap._header.file_size)
+        writer.write_int16(bitmap._header.reserved1)
+        writer.write_int16(bitmap._header.reserved2)
+        writer.write_int32(bitmap._header.start_address)
 
+        #
 
         pass

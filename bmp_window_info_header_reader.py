@@ -1,4 +1,4 @@
-from bmp_file_header_reader import BMPFileHeaderReader
+from bmp_file_header_reader import BMPFileHeaderReader, BMPFileHeaderWriter
 from bmp_window_info_header import BMPCompressionType, BMPWindowInfoHeader
 
 
@@ -48,3 +48,28 @@ class BMPWindowInfoHeaderReader(BMPFileHeaderReader):
 
             pass
         return header
+
+
+class BMPWindowInfoHeaderWriter(BMPFileHeaderWriter):
+
+    """
+    The class will be used to write back the BMP file information to a bytes stream.
+    """
+
+    def __init__(self):
+        super().__init__()
+
+    def write(self, header: BMPWindowInfoHeader) -> int:
+        super().write(header)
+        self.stream.write_int32(header.size)
+        self.stream.write_int32(header.width)
+        self.stream.write_int32(header.height)
+        self.stream.write_int16(header.color_planes)
+        self.stream.write_int16(header.bits_per_pixels)
+        self.stream.write_int32(header.compression_type)
+        self.stream.write_int32(header.image_size)
+        self.stream.write_int32(header.horizontal_resolution)
+        self.stream.write_int32(header.vertical_resolution)
+        self.stream.write_int32(header.color_used)
+        self.stream.write_int32(header.colors_important)
+        return self.stream.position

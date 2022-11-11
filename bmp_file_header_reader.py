@@ -1,6 +1,11 @@
 import io
 
-from binary_stream_reader import BinaryStreamReader, ReaderBase
+from binary_stream_reader import (
+    BinaryStreamReader,
+    BinaryStreamWriter,
+    ReaderBase,
+    WriterBase,
+)
 from bmp_file_header import BMPFileHeader
 
 
@@ -35,3 +40,25 @@ class BMPFileHeaderReader(ReaderBase):
         header.reserved2 = self.stream.readint_16()
         header.start_address = self.stream.readint_32()
         return header
+
+
+class BMPFileHeaderWriter(WriterBase):
+    """
+    The class will be used to write back the BMPFileHeader
+    back to the byte stream.
+    """
+
+    def __init__(self):
+        self.__stream = BinaryStreamWriter()
+
+    @property
+    def stream(self) -> BinaryStreamWriter:
+        return self.__stream
+
+    def write(self, header: BMPFileHeader) -> int:
+        self.stream.write_string(header.type)
+        self.stream.write_int32(header.file_size)
+        self.stream.write_int16(header.reserved1)
+        self.stream.write_int16(header.reserved2)
+        self.stream.write_int32(header.start_address)
+        return self.stream.position
