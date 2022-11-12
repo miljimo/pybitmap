@@ -1,14 +1,10 @@
 import io
 import os.path
 
+from bmp_file_reader import BMPWindowColorPaletteReader, BMPWindowInfoHeaderReader
+from bmp_file_writer import BMPWindowColorPaletteWriter
+from bmp_image import BMPColorDepthType, BMPPalette
 from constants import ROOT_DIR
-from bmp_window_info_header import BMPColorDepthType
-from bmp_color_palette import BMPPalette
-from bmp_window_color_palette_reader import (
-    BMPWindowColorPaletteReader,
-    BMPWindowColorPaletteWriter,
-)
-from bmp_window_info_header_reader import BMPWindowInfoHeaderReader
 
 
 def test_window_bitmap_color_palette_pixels_loaded():

@@ -1,13 +1,8 @@
 import io
-import os
 
-from bmp_file_header import BMPFileHeader, BMPFileType
-from bmp_file_header_reader import BMPFileHeaderReader, BMPFileHeaderWriter
-from bmp_window_info_header import BMPWindowInfoHeader
-from bmp_window_info_header_reader import (
-    BMPWindowInfoHeaderReader,
-    BMPWindowInfoHeaderWriter,
-)
+from bmp_file_reader import BMPFileHeaderReader, BMPWindowInfoHeaderReader
+from bmp_file_writer import BMPFileHeaderWriter, BMPWindowInfoHeaderWriter
+from bmp_image import BMPFileHeader, BMPFileType, BMPWindowInfoHeader
 
 
 def test_bitmap_header_reader_from_file_success_loaded():

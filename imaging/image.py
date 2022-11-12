@@ -1,6 +1,7 @@
 import abc
-from imaging.size import Size
+
 from imaging.pixel_array import PixelArray
+from imaging.size import Size
 
 
 class Image(metaclass=abc.ABCMeta):
