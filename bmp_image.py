@@ -2,11 +2,16 @@
  ~Descriptions
   Write and read a bitmap (Device Independent Bitmap(DIB) file format
 """
+import io
 from enum import IntEnum
 
 from imaging.image import Image
 from imaging.pixel_array import PixelArray
 from imaging.size import Size
+
+
+NO_COMPRESSION = 0
+BYTE_SIZE_IN_BITS = 8
 
 
 class BMPFileType(IntEnum):
@@ -16,9 +21,6 @@ class BMPFileType(IntEnum):
     CP = 3  # OS/2 const color pointer
     IC = 4  # OS/2 struct icon
     PT = 5  # OS/2 pointer
-
-
-NO_COMPRESSION_NEEDED = 0
 
 
 class BMPCompressionType(IntEnum):
@@ -116,26 +118,52 @@ class BMPWindowInfoHeader(BMPFileHeader):
 
     @property
     def is_compressed(self) -> bool:
-        return self.compression_type != NO_COMPRESSION_NEEDED
+        return self.compression_type != NO_COMPRESSION
 
 
-class BMPPalette(object):
+class BMPColorStorage(object):
     """
-    The BITMAPINFOHEADER structure may be followed by an array of palette entries or color masks.
-    The rules depend on the value of biCompression.
+    The most straightforward way of storing a bitmap is simply to list the bitmap information,
+    byte after byte, row by row. Files stored by this method are often called RAW files.
+    The amount of disk storage required for any bitmap is easy to calculate given the bitmap dimensions (N x M) and
+    colour depth in bits (B). The formula for the file size in KBytes is
     """
 
-    def __init__(
-        self, width: int, height: int, buffer: bytes, bits_per_pixel: int = 24
-    ):
+    def __init__(self, width: int, height: int, bits_per_pixel: int = 24):
         self.__width = width
         self.__height = height
-        self.__palettes = buffer
         self.__bits_per_pixel = bits_per_pixel
+        self.__size = int(
+            (self.__width * self.__height * self.__bits_per_pixel) / BYTE_SIZE_IN_BITS
+        )
+        self.__buffer = io.BytesIO(bytearray([0x00] * self.__size))
+        self.__offset = int(bits_per_pixel / BYTE_SIZE_IN_BITS)
+
+    @property
+    def size(self) -> int:
+        """
+          return the disk size in bytes colors in the bitmap image
+        :return:
+        """
+        return self.__size
 
     @property
     def data(self) -> bytes:
-        return self.__palettes
+        self.__buffer.seek(0, io.SEEK_SET)
+        return self.__buffer.read()
+
+
+    def insert(self, row_index:int , red:int , green:int , blue:int) -> bool:
+        """
+          Insert the pixel colors into the given palette rows
+        :param row_index:
+        :param red:
+        :param green:
+        :param blue:
+        :return:
+        """
+        pass
+
 
     def decode_pixels(self) -> PixelArray:
         """

@@ -5,7 +5,7 @@ from binary_streaming.memory_reader import BinaryStreamReader
 from binary_streaming.reader import ReaderBase
 from bmp_image import (
     BMPImage,
-    BMPPalette,
+    BMPColorStorage,
     BMPFileHeader,
     BMPWindowInfoHeader,
     BMPCompressionType,
@@ -107,11 +107,11 @@ class BMPWindowColorPaletteReader(ReaderBase):
     def stream(self) -> BinaryStreamReader:
         return self.__stream
 
-    def read(self) -> BMPPalette:
+    def read(self) -> BMPColorStorage:
         """
         :return:
         """
-        color_palette = BMPPalette(
+        color_palette = BMPColorStorage(
             width=self._header.width,
             height=self._header.height,
             buffer=self.stream.read(),
